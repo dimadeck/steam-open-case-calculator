@@ -5,6 +5,24 @@ services:
     build: ./
     volumes:
       - ./src:/usr/src/app
+    env_file:
+      - .env
     ports:
       - 8004:8000
     command: uvicorn main:app --host 0.0.0.0 --reload
+    depends_on:
+      - db
+
+  db:
+    image: postgres:12.0-alpine
+    ports:
+      - "${DB_PORT}:5432"
+    restart: always
+    volumes:
+      - ./inventory_sum:/var/lib/postgresql/data
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_BASENAME}"
