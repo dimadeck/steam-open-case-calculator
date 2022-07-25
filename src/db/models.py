@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, Boolean, DateTime, Numeric, String, BigInteger
+from sqlalchemy.dialects.postgresql import UUID
 
 from db.connections import Base
 
@@ -12,6 +13,11 @@ class ObservedProfile(Base):
     last_modified_date = Column(DateTime)
     total_amount = Column(Numeric, default=0)
     total_count = Column(Integer, default=0)
+
+
+class OpenCase(Base):
+    __tablename__ = "opencases"
+    uuid = Column(UUID, primary_key=True, unique=True)
 
 
 class Item(Base):
@@ -31,4 +37,6 @@ class Item(Base):
     price = Column(Numeric, nullable=True, default=None)
     item_float = Column(Numeric, nullable=True, default=None)
     is_shown = Column(Boolean, default=False)
+
+
 

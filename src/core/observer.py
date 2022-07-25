@@ -3,13 +3,12 @@ from time import sleep
 import requests
 
 from .last_item_info import LastItemInfo
-
-HOST = 'http://127.0.0.1:8004'
+from config import settings_app
 
 
 class Observer:
     WAITING_TIME = 1
-    ADD_ITEM_URL = f'{HOST}/api/v1/item'
+    ADD_ITEM_URL = f'{settings_app.BACKEND_URL}/item'
 
     def __init__(self, profile_id, last_asset_id):
         self._profile_id = profile_id

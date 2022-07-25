@@ -2,6 +2,7 @@ from pydantic import Field, BaseSettings
 
 
 class ApplicationSettings(BaseSettings):
+    BACKEND_URL: str = Field(env='BACKEND_URL')
     DB_HOST: str = Field(env='DB_HOST')
     DB_PORT: int = Field(env='DB_PORT')
     DB_BASENAME: str = Field(env='DB_BASENAME')

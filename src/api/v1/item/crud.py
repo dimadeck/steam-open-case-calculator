@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from db.connections import async_session
@@ -67,14 +67,15 @@ class CrudItem:
     async def show_items(self, profile_id: int) -> List[Item]:
         sql = select(Item).filter_by(profile_id=profile_id, is_shown=False)
         query = await self.db_session.execute(sql)
-        return query.scalars().all()
+        items = query.scalars().all()
+        for item in items:
+            await self.update_item(item.asset_id, is_shown=True)
+        return items
 
+    async def update_item(self, asset_id: int, **kwargs):
+        sql = update(Item).filter_by(asset_id=asset_id).values(**kwargs).execution_options(synchronize_session="fetch")
+        await self.db_session.execute(sql)
     #
-    # async def update_item(self, item_id: int, **kwargs) -> Item:
-    #     sql = update(Item).filter_by(id=item_id).values(**kwargs).execution_options(synchronize_session="fetch")
-    #     await self.db_session.execute(sql)
-    #     return await self._get_item(item_id=item_id)
-    # 
     # async def delete_item(self, item_id: int):
     #     item = await self._get_item(item_id)
     #     await self.db_session.delete(item)

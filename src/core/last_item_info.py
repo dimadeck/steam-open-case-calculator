@@ -33,7 +33,7 @@ class LastItemInfo:
         for tag in description['tags']:
             category = tag['category']
             if category == 'Type':
-                item_info['type'] = tag['localized_tag_name']
+                item_info['item_type'] = tag['localized_tag_name']
             if category == 'Weapon':
                 item_info['weapon'] = tag['localized_tag_name']
             if category == 'Rarity':

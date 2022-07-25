@@ -1,4 +1,4 @@
-#Real-Time Steam Inventory Calculator for OBS
+#Steam Open Case Calculator
 
 ## Цель проекта: 
 

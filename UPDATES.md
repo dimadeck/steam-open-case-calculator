@@ -47,3 +47,19 @@
             alembic revision --autogenerate -m 'message'
             alembic upgrade head
 
+    Реализовано:
+        Item:
+            - Schema
+            - Routes (get, post)
+            - CRUD methods (get, create)
+
+
+### Четвертый стрим
+
+    Первая успешная демонстрация проекта (MVP) 
+
+### Вне стрима
+
+    Построена новая архитектура БД
+    Авторизация по Steam
+
