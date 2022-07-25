@@ -9,6 +9,9 @@ class ApplicationSettings(BaseSettings):
     DB_USERNAME: str = Field(env='DB_USERNAME')
     DB_PASSWORD: str = Field(env='DB_PASSWORD')
     DB_PROTOCOL: str = Field(env='DB_PROTOCOL')
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(env='JWT_ACCESS_TOKEN_EXPIRE_MINUTES', default=24*60)
+    JWT_SECRET: str = Field(env='JWT_SECRET', default='31f04487001ce91ec7c2fa1615fcd744614a3c4fda18f1ad')
+    JWT_ALGORITHM: str = Field(env='JWT_ALGORITHM', default='HS256')
 
     @property
     def dsn(self):

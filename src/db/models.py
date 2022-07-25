@@ -1,23 +1,30 @@
-from sqlalchemy import Column, Integer, Boolean, DateTime, Numeric, String, BigInteger
+from datetime import datetime
+
+from sqlalchemy import Column, Boolean, DateTime, Numeric, String, BigInteger, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from db.connections import Base
 
 
-class ObservedProfile(Base):
-    __tablename__ = "observed_profiles"
+class User(Base):
+    __tablename__ = 'users'
 
-    profile_id = Column(BigInteger, unique=True, index=True, primary_key=True)
-    last_asset_id = Column(BigInteger, default=0)
-    is_observed = Column(Boolean, default=False)
-    last_modified_date = Column(DateTime)
-    total_amount = Column(Numeric, default=0)
-    total_count = Column(Integer, default=0)
+    profile_id = Column(BigInteger, index=True, primary_key=True, unique=True)
+    username = Column(String)
+    image_url = Column(String, nullable=True, default=None)
 
 
 class OpenCase(Base):
-    __tablename__ = "opencases"
-    uuid = Column(UUID, primary_key=True, unique=True)
+    __tablename__ = "open_cases"
+
+    uuid = Column(UUID(as_uuid=True), primary_key=True, unique=True)
+    profile_id = Column(BigInteger, index=True)
+    name = Column(String)
+    description = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow())
+    updated_at = Column(DateTime, onupdate=datetime.utcnow())
+    is_active = Column(Boolean, default=False)
 
 
 class Item(Base):
@@ -38,5 +45,6 @@ class Item(Base):
     item_float = Column(Numeric, nullable=True, default=None)
     is_shown = Column(Boolean, default=False)
 
-
-
+    created_at = Column(DateTime, default=datetime.utcnow())
+    open_case_uuid = Column(UUID, ForeignKey(OpenCase.uuid))
+    open_case = relationship('OpenCase', viewonly=True, lazy="joined")

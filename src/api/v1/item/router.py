@@ -2,8 +2,10 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
+from api.middleware.user import get_current_user
 from api.v1.item.crud import CrudItem, get_crud_item
 from api.v1.item.schema import ItemModel, ItemModelBase
+from api.v1.user.schema import UserModel
 
 router = APIRouter()
 
@@ -41,8 +43,10 @@ async def create_item(
     summary='Получить все предметы'
 )
 async def get_item(
-        db: CrudItem = Depends(get_crud_item)
+        db: CrudItem = Depends(get_crud_item),
+        current_user: UserModel = Depends(get_current_user)
 ):
+    print(current_user)
     return await db.get_items()
 
 
