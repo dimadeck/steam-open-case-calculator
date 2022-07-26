@@ -1,4 +1,5 @@
-from typing import Optional, List
+from typing import Optional, List, Union
+from uuid import UUID
 
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
@@ -13,6 +14,7 @@ class CrudItem:
 
     async def create_item(
             self,
+            open_case_uuid: Union[str, UUID],
             profile_id: int,
             asset_id: int,
             class_id: int,
@@ -28,6 +30,7 @@ class CrudItem:
             item_float: Optional[float] = None
     ) -> Item:
         item = Item(
+            open_case_uuid=open_case_uuid,
             profile_id=profile_id,
             asset_id=asset_id,
             class_id=class_id,
@@ -59,23 +62,24 @@ class CrudItem:
     # async def get_item_by_id(self, item_id: int) -> Item:
     #     return await self._get_item(item_id)
     # 
-    async def get_items(self) -> List[Item]:
-        sql = select(Item)
+    async def get_items(self, profile_id: int, open_case_uuid: Optional[Union[str, UUID]] = None) -> List[Item]:
+        kwargs = dict(profile_id=profile_id)
+        if open_case_uuid:
+            kwargs.update(dict(open_case_uuid=open_case_uuid))
+        sql = select(Item).filter_by(**kwargs)
         query = await self.db_session.execute(sql)
         return query.scalars().all()
 
     async def show_items(self, profile_id: int) -> List[Item]:
         sql = select(Item).filter_by(profile_id=profile_id, is_shown=False)
         query = await self.db_session.execute(sql)
-        items = query.scalars().all()
-        for item in items:
-            await self.update_item(item.asset_id, is_shown=True)
-        return items
+        return query.scalars().all()
 
-    async def update_item(self, asset_id: int, **kwargs):
-        sql = update(Item).filter_by(asset_id=asset_id).values(**kwargs).execution_options(synchronize_session="fetch")
+    async def update_item(self, profile_id: int, asset_id: int, **kwargs):
+        sql = update(Item).filter_by(profile_id=profile_id, asset_id=asset_id).values(**kwargs). \
+            execution_options(synchronize_session="fetch")
         await self.db_session.execute(sql)
-    #
+        #
     # async def delete_item(self, item_id: int):
     #     item = await self._get_item(item_id)
     #     await self.db_session.delete(item)

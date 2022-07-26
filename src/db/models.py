@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 
 from sqlalchemy import Column, Boolean, DateTime, Numeric, String, BigInteger, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
@@ -18,12 +19,12 @@ class User(Base):
 class OpenCase(Base):
     __tablename__ = "open_cases"
 
-    uuid = Column(UUID(as_uuid=True), primary_key=True, unique=True)
+    uuid = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid4)
     profile_id = Column(BigInteger, index=True)
     name = Column(String)
     description = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow())
-    updated_at = Column(DateTime, onupdate=datetime.utcnow())
+    updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
     is_active = Column(Boolean, default=False)
 
 

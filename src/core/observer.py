@@ -10,13 +10,14 @@ class Observer:
     WAITING_TIME = 1
     ADD_ITEM_URL = f'{settings_app.BACKEND_URL}/item'
 
-    def __init__(self, profile_id, last_asset_id):
+    def __init__(self, profile_id, last_asset_id, open_case_uuid):
         self._profile_id = profile_id
         self._last_asset_id = last_asset_id
+        self._open_case_uuid = open_case_uuid
 
     def observe(self):
+        lii = LastItemInfo(self._profile_id, self._open_case_uuid)
         while self._is_watched():
-            lii = LastItemInfo(self._profile_id)
             try:
                 item_info = lii.get_item_info()
                 if item_info['asset_id'] == self._last_asset_id:
@@ -36,3 +37,5 @@ class Observer:
         data = answer.text
         print(data)
         return data
+
+

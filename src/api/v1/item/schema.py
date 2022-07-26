@@ -1,4 +1,5 @@
-from typing import Optional
+from typing import Optional, Union
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -9,6 +10,7 @@ class BaseModelORM(BaseModel):
 
 
 class ItemModelBase(BaseModelORM):
+    open_case_uuid: Union[str, UUID]
     profile_id: int
     asset_id: int
     class_id: int

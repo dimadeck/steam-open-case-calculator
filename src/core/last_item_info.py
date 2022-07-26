@@ -6,8 +6,9 @@ class LastItemInfo:
     PRICE_URL = 'https://steamcommunity.com/market/priceoverview/?country=RU&currency=5&appid=730&market_hash_name={}'
     IMAGE_URL = 'https://steamcommunity-a.akamaihd.net/economy/image/{}'
 
-    def __init__(self, profile_id):
+    def __init__(self, profile_id, open_case_uuid):
         self._profile_id = profile_id
+        self._open_case_uuid = open_case_uuid
 
     def _get_item_info(self):
         answer = requests.get(self.INVENTORY_URL.format(self._profile_id))
@@ -18,6 +19,7 @@ class LastItemInfo:
         asset = raw_data['assets'][0]
         description = raw_data['descriptions'][0]
         item_info = {
+            'open_case_uuid': self._open_case_uuid,
             'profile_id': self._profile_id,
             'asset_id': asset['assetid'],
             'class_id': asset['classid'],

@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Union, Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
@@ -21,6 +22,7 @@ async def create_item(
         db: CrudItem = Depends(get_crud_item)
 ):
     return await db.create_item(
+        open_case_uuid=data.open_case_uuid,
         profile_id=data.profile_id,
         asset_id=data.asset_id,
         class_id=data.class_id,
@@ -43,11 +45,11 @@ async def create_item(
     summary='Получить все предметы'
 )
 async def get_item(
+        open_case_uuid: Optional[Union[str, UUID]]=None,
         db: CrudItem = Depends(get_crud_item),
         current_user: UserModel = Depends(get_current_user)
 ):
-    print(current_user)
-    return await db.get_items()
+    return await db.get_items(profile_id=current_user.profile_id, open_case_uuid=open_case_uuid)
 
 
 @router.get(
@@ -60,3 +62,31 @@ async def get_item(
         db: CrudItem = Depends(get_crud_item)
 ):
     return await db.show_items(profile_id)
+
+
+@router.post(
+    '/item/{asset_id}/replace',
+    response_model=List[ItemModel],
+    summary='Перенести Item в другой OpenCase'
+)
+async def replace_item(
+        asset_id: int,
+        open_case_uuid: Union[str, UUID],
+        current_user: UserModel = Depends(get_current_user),
+        db: CrudItem = Depends(get_crud_item)
+):
+    # todo: Добавить проверку на принадлежность нового кейса текущему пользователю
+    return await db.update_item(profile_id=current_user.profile_id, asset_id=asset_id, open_case_uuid=open_case_uuid)
+
+
+@router.post(
+    '/item/{asset_id}/show',
+    response_model=List[ItemModel],
+    summary='Пометить Item как просмотренный'
+)
+async def replace_item(
+        asset_id: int,
+        current_user: UserModel = Depends(get_current_user),
+        db: CrudItem = Depends(get_crud_item)
+):
+    return await db.update_item(profile_id=current_user.profile_id, asset_id=asset_id, is_shown=True)
