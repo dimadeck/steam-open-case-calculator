@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional, Union
 from uuid import UUID
 
@@ -28,3 +29,4 @@ class ItemModelBase(BaseModelORM):
 class ItemModel(ItemModelBase):
     profile_id: int
     is_shown: bool
+    created_at: datetime.datetime

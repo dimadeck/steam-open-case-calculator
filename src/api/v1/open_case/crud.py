@@ -1,12 +1,12 @@
 from typing import Union, List
 from uuid import UUID
 
-from sqlalchemy import select, update, column
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session, selectinload
 
 from api.middleware.orm_error import orm_error_handler
 from db.connections import async_session
-from db.models import OpenCase, Item
+from db.models import OpenCase
 
 
 class CrudOpenCase:
@@ -30,8 +30,15 @@ class CrudOpenCase:
         return open_case
 
     @orm_error_handler
-    async def get_open_case_by_uuid(self, profile_id: int, open_case_uuid: Union[UUID, str]) -> OpenCase:
+    async def get_open_case_by_uuid(
+            self,
+            profile_id: int,
+            open_case_uuid: Union[UUID, str],
+            with_items: bool = True
+    ) -> OpenCase:
         sql = select(OpenCase).filter_by(profile_id=profile_id, uuid=open_case_uuid)
+        if with_items:
+            sql = sql.options(selectinload(OpenCase.items))
         query = await self.db_session.execute(sql)
         return query.scalar_one()
 

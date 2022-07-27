@@ -34,14 +34,11 @@ async def process_login(
     profile_id = steam_signin.ValidateResults(request.query_params)
     si = SteamInfo(int(profile_id))
     user_data = si.get_info()
-    try:
-        user = await user_crud.get_user(user_data.get('profile_id'))
-    except:
-        user = await user_crud.create(
-            profile_id=user_data['profile_id'],
-            username=user_data['username'],
-            image_url=user_data['image_url']
-        )
+    user = await user_crud.create_or_update(
+        profile_id=user_data['profile_id'],
+        username=user_data['username'],
+        image_url=user_data['image_url']
+    )
     return {
         "access_token": create_access_token(sub=user.profile_id),
         "token_type": "bearer",

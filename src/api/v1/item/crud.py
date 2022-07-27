@@ -44,7 +44,7 @@ class CrudItem:
             rarity=rarity,
             rarity_color=rarity_color,
             image_url=image_url,
-            price=price,
+            price=round(price, 2),
             item_float=item_float
         )
         self.db_session.add(item)
