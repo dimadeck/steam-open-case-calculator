@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 from api.middleware.user import get_current_user
 from api.v1.item.crud import CrudItem, get_crud_item
 from api.v1.item.schema import ItemModel, ItemModelBase
+from api.v1.open_case.crud import get_crud_open_case, CrudOpenCase
 from api.v1.user.schema import UserModel
 
 router = APIRouter()
@@ -56,22 +57,23 @@ async def get_item(
 
 @router.post(
     '/item/{asset_id}/replace',
-    response_model=List[ItemModel],
+    response_model=ItemModel,
     summary='Перенести Item в другой OpenCase'
 )
 async def replace_item(
         asset_id: int,
         open_case_uuid: Union[str, UUID],
         current_user: UserModel = Depends(get_current_user),
-        db: CrudItem = Depends(get_crud_item)
+        db: CrudItem = Depends(get_crud_item),
+        crud_open_case: CrudOpenCase = Depends(get_crud_open_case)
 ):
-    # todo: Добавить проверку на принадлежность нового кейса текущему пользователю
+    await crud_open_case.get_open_case_by_uuid(profile_id=current_user.profile_id, open_case_uuid=open_case_uuid)
     return await db.update_item(profile_id=current_user.profile_id, asset_id=asset_id, open_case_uuid=open_case_uuid)
 
 
 @router.post(
     '/item/{asset_id}/show',
-    response_model=List[ItemModel],
+    response_model=ItemModel,
     summary='Пометить Item как просмотренный'
 )
 async def replace_item(

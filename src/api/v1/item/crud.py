@@ -52,6 +52,16 @@ class CrudItem:
         return item
 
     @orm_error_handler
+    async def get_item_by_id(
+            self,
+            asset_id: int,
+            profile_id: int,
+    ) -> Item:
+        sql = select(Item).filter_by(profile_id=profile_id, asset_id=asset_id)
+        query = await self.db_session.execute(sql)
+        return query.scalar_one()
+
+    @orm_error_handler
     async def get_items(
             self,
             profile_id: int,
@@ -68,10 +78,11 @@ class CrudItem:
         return query.scalars().all()
 
     @orm_error_handler
-    async def update_item(self, profile_id: int, asset_id: int, **kwargs):
+    async def update_item(self, profile_id: int, asset_id: int, **kwargs) -> Item:
         sql = update(Item).filter_by(profile_id=profile_id, asset_id=asset_id).values(**kwargs). \
             execution_options(synchronize_session="fetch")
         await self.db_session.execute(sql)
+        return await self.get_item_by_id(asset_id=asset_id, profile_id=profile_id)
 
 
 async def get_crud_item():

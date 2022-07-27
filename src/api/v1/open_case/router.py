@@ -91,7 +91,8 @@ async def launch_open_case(
         db: CrudOpenCase = Depends(get_crud_open_case),
         current_user: UserModel = Depends(get_current_user)
 ):
-    # todo: Для запуска нужно добавить условие: Не запущено ни одно открытия для этого профиля
+    if is_active:
+        await db.stop_all_open_cases(current_user.profile_id)
     return await db.update_open_case(
         open_case_uuid=open_case_uuid,
         profile_id=current_user.profile_id,
