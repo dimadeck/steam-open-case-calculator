@@ -1,8 +1,7 @@
-from fastapi import FastAPI
 from starlette.requests import Request
 
 from api.middleware.token import create_access_token
-from api.v1.steam_auth.steamsignin import SteamSignIn
+from api.v1.user.steamsignin import SteamSignIn
 
 from fastapi import APIRouter, Depends
 
@@ -18,8 +17,8 @@ router = APIRouter()
     summary='Авторизация steam'
 )
 async def login(steam_signin: SteamSignIn = Depends(SteamSignIn)):
-    url = steam_signin.ConstructURL(settings_app.BACKEND_URL + '/process-login')
-    return steam_signin.RedirectUser(url)
+    url = steam_signin.construct_url(settings_app.BACKEND_URL + '/process-login')
+    return steam_signin.redirect_user(url)
 
 
 @router.get(
@@ -31,7 +30,7 @@ async def process_login(
         steam_signin: SteamSignIn = Depends(SteamSignIn),
         user_crud: UserCRUD = Depends(get_crud_user)
 ):
-    profile_id = steam_signin.ValidateResults(request.query_params)
+    profile_id = steam_signin.validate_results(request.query_params)
     si = SteamInfo(int(profile_id))
     user_data = si.get_info()
     user = await user_crud.create_or_update(

@@ -6,6 +6,10 @@ from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from log import get_log_channel
+
+_log = get_log_channel('ORM_ERROR')
+
 
 class ExceptionSQL(Exception):
     def __init__(self, detail: str, sql_detail: Optional[str] = None):
@@ -66,5 +70,6 @@ def orm_error_handler(func):
         except DBAPIError as exc:
             sql_detail = str(exc.orig)
             handle_db_api_error(exc=exc, sql_detail=sql_detail)
+            _log.error(f'Exception: {exc}\nDetails: {sql_detail}')
 
     return decorator

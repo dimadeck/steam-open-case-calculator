@@ -2,8 +2,11 @@ from time import sleep
 
 import requests
 
+from log import get_log_channel
 from .last_item_info import LastItemInfo
 from config import settings_app
+
+_log = get_log_channel('TEST')
 
 
 class Observer:
@@ -25,7 +28,7 @@ class Observer:
                 self._add_new_item(item_info)
                 self._last_asset_id = item_info['asset_id']
             except Exception as e:
-                print(e)
+                _log.error(e)
             sleep(self.WAITING_TIME)
 
     def _is_watched(self):
@@ -37,5 +40,3 @@ class Observer:
         data = answer.text
         print(data)
         return data
-
-

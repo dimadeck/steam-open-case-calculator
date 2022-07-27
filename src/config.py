@@ -12,6 +12,9 @@ class ApplicationSettings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(env='JWT_ACCESS_TOKEN_EXPIRE_MINUTES')
     JWT_SECRET: str = Field(env='JWT_SECRET')
     JWT_ALGORITHM: str = Field(env='JWT_ALGORITHM')
+    LOG_LEVEL: str = Field(env='LOG_LEVEL')
+    LOG_FILENAME: str = Field(env='LOG_FILENAME')
+    LOG_CONSOLE: str = Field(env='LOG_CONSOLE')
 
     @property
     def dsn(self):

@@ -1,5 +1,46 @@
 #Steam Open Case Calculator
 
+## Настройка и запуск проекта:
+
+    Необходимые зависимости:
+        - git
+        - docker
+
+    $ git clone https://github.com/dimadeck/steam-open-case-calculator
+    $ cd steam-open-case-calculator
+
+    Создать файл .env с содержимым:
+
+        DB_HOST=db
+        DB_PORT=5432
+        DB_USERNAME=inventory_sum_user
+        DB_PASSWORD=inventory_sum_user_password
+        DB_BASENAME=inventory_sum
+        DB_PROTOCOL=postgresql+asyncpg
+        BACKEND_URL=http://127.0.0.1:8004/api/v1
+        JWT_ACCESS_TOKEN_EXPIRE_MINUTES=43200
+        JWT_SECRET=31f04487001ce91ec7c2fa1615fcd744614a3c4fda18f1ad
+        JWT_ALGORITHM=HS256
+    
+    Для настройки(заполнения) базы данных изменить переменную окружения:
+        DB_HOST=127.0.0.1
+    
+    $ python -m venv env
+    $ env\Scripts\activate.exe 
+    или $ source env/bin/activate
+    $ pip install -r requirements.txt
+        
+    Если папка migrations пустая или необходимо пересоздать миграции:
+        $ alembic revision --autogenerate -m 'Message for commit'
+    $ alembic upgrade head 
+
+    Запуск контейнеров:
+
+    $ docker-compose build
+    $ docker-compose run
+
+
+
 ## Цель проекта: 
 
     Собрать сервис, для стрима с открытием 100 капсул (с наклейками) 
