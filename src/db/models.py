@@ -49,3 +49,15 @@ class Item(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow())
     open_case_uuid = Column(UUID(as_uuid=True), ForeignKey("open_cases.uuid"))
+
+
+class RenderTemplate(Base):
+    __tablename__ = "render_templates"
+
+    uuid = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid4)
+    profile_id = Column(BigInteger, index=True)
+    name = Column(String)
+    html_text = Column(Text)
+    script_text = Column(Text, nullable=True, default="")
+    style_text = Column(Text, nullable=True, default="")
+    is_private = Column(Boolean, default=False)

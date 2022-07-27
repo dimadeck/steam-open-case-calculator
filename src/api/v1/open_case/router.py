@@ -17,7 +17,7 @@ router = APIRouter()
     response_model=OpenCaseModel,
     summary="Добавить новое открытие кейсов"
 )
-async def create_item(
+async def create_open_case(
         data: OpenCaseBaseModel,
         db: CrudOpenCase = Depends(get_crud_open_case),
         current_user: UserModel = Depends(get_current_user)
@@ -59,7 +59,6 @@ async def update_open_case(
 ):
     return await db.update_open_case(
         open_case_uuid=open_case_uuid,
-        profile_id=current_user.profile_id,
         name=data.name,
         description=data.description
     )
