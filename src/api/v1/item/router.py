@@ -19,11 +19,12 @@ router = APIRouter()
 )
 async def create_item(
         data: ItemModelBase,
-        db: CrudItem = Depends(get_crud_item)
+        db: CrudItem = Depends(get_crud_item),
+        current_user: UserModel = Depends(get_current_user),
 ):
     return await db.create_item(
         open_case_uuid=data.open_case_uuid,
-        profile_id=data.profile_id,
+        profile_id=current_user.profile_id,
         asset_id=data.asset_id,
         class_id=data.class_id,
         instance_id=data.instance_id,
@@ -45,23 +46,12 @@ async def create_item(
     summary='Получить все предметы'
 )
 async def get_item(
-        open_case_uuid: Optional[Union[str, UUID]]=None,
+        open_case_uuid: Optional[Union[str, UUID]] = None,
+        is_shown: bool = False,
         db: CrudItem = Depends(get_crud_item),
         current_user: UserModel = Depends(get_current_user)
 ):
-    return await db.get_items(profile_id=current_user.profile_id, open_case_uuid=open_case_uuid)
-
-
-@router.get(
-    '/show_items',
-    response_model=List[ItemModel],
-    summary='Получить непросмотренные предметы'
-)
-async def get_item(
-        profile_id: int,
-        db: CrudItem = Depends(get_crud_item)
-):
-    return await db.show_items(profile_id)
+    return await db.get_items(profile_id=current_user.profile_id, open_case_uuid=open_case_uuid, is_shown=is_shown)
 
 
 @router.post(

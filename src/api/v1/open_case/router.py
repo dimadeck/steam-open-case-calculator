@@ -36,12 +36,13 @@ async def create_item(
 )
 async def get_open_case(
         open_case_uuid: Optional[Union[str, UUID]] = None,
+        with_items: bool = False,
         db: CrudOpenCase = Depends(get_crud_open_case),
         current_user: UserModel = Depends(get_current_user)
 ):
     if open_case_uuid:
         return await db.get_open_case_by_uuid(profile_id=current_user.profile_id, open_case_uuid=open_case_uuid)
-    return await db.get_open_cases(profile_id=current_user.profile_id)
+    return await db.get_open_cases(profile_id=current_user.profile_id, with_items=with_items)
 
 
 @router.patch(

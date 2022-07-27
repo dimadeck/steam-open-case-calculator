@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
+from api.middleware.orm_error import orm_error_handler
 from db.connections import async_session
 from db.models import Item
 
@@ -12,6 +13,7 @@ class CrudItem:
     def __init__(self, db_session: Session):
         self.db_session = db_session
 
+    @orm_error_handler
     async def create_item(
             self,
             open_case_uuid: Union[str, UUID],
@@ -49,40 +51,27 @@ class CrudItem:
         await self.db_session.flush()
         return item
 
-    # async def get_item_by_name(self, name: str) -> Item:
-    #     sql = select(Item).filter_by(name=name)
-    #     query = await self.db_session.execute(sql)
-    #     return query.scalar_one()
-    # 
-    # async def _get_item(self, item_id: int) -> Item:
-    #     sql = select(Item).filter_by(id=item_id)
-    #     query = await self.db_session.execute(sql)
-    #     return query.scalar_one()
-    # 
-    # async def get_item_by_id(self, item_id: int) -> Item:
-    #     return await self._get_item(item_id)
-    # 
-    async def get_items(self, profile_id: int, open_case_uuid: Optional[Union[str, UUID]] = None) -> List[Item]:
+    @orm_error_handler
+    async def get_items(
+            self,
+            profile_id: int,
+            open_case_uuid: Optional[Union[str, UUID]] = None,
+            is_shown=None
+    ) -> List[Item]:
         kwargs = dict(profile_id=profile_id)
         if open_case_uuid:
             kwargs.update(dict(open_case_uuid=open_case_uuid))
+        if is_shown is not None:
+            kwargs.update(dict(is_shown=is_shown))
         sql = select(Item).filter_by(**kwargs)
         query = await self.db_session.execute(sql)
         return query.scalars().all()
 
-    async def show_items(self, profile_id: int) -> List[Item]:
-        sql = select(Item).filter_by(profile_id=profile_id, is_shown=False)
-        query = await self.db_session.execute(sql)
-        return query.scalars().all()
-
+    @orm_error_handler
     async def update_item(self, profile_id: int, asset_id: int, **kwargs):
         sql = update(Item).filter_by(profile_id=profile_id, asset_id=asset_id).values(**kwargs). \
             execution_options(synchronize_session="fetch")
         await self.db_session.execute(sql)
-        #
-    # async def delete_item(self, item_id: int):
-    #     item = await self._get_item(item_id)
-    #     await self.db_session.delete(item)
 
 
 async def get_crud_item():

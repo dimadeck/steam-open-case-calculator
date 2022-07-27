@@ -11,7 +11,6 @@ class BaseModelORM(BaseModel):
 
 class ItemModelBase(BaseModelORM):
     open_case_uuid: Union[str, UUID]
-    profile_id: int
     asset_id: int
     class_id: int
     instance_id: Optional[int] = 0
@@ -27,4 +26,5 @@ class ItemModelBase(BaseModelORM):
 
 
 class ItemModel(ItemModelBase):
+    profile_id: int
     is_shown: bool

@@ -26,6 +26,7 @@ class OpenCase(Base):
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
     is_active = Column(Boolean, default=False)
+    items = relationship("Item", uselist=True, lazy='noload')
 
 
 class Item(Base):
@@ -47,5 +48,4 @@ class Item(Base):
     is_shown = Column(Boolean, default=False)
 
     created_at = Column(DateTime, default=datetime.utcnow())
-    open_case_uuid = Column(UUID, ForeignKey(OpenCase.uuid))
-    open_case = relationship('OpenCase', viewonly=True, lazy="joined")
+    open_case_uuid = Column(UUID(as_uuid=True), ForeignKey("open_cases.uuid"))
