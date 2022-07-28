@@ -40,13 +40,14 @@ async def create_render_template(
 )
 async def get_render_template(
         render_template_uuid: Optional[Union[str, UUID]] = None,
+        show_all: bool = False,
         db: CrudRenderTemplate = Depends(get_crud_render_template),
         current_user: UserModel = Depends(get_current_user)
 ):
     if render_template_uuid:
         return await db.get_render_template_by_uuid(profile_id=current_user.profile_id,
                                                     render_template_uuid=render_template_uuid)
-    return await db.get_render_templates(profile_id=current_user.profile_id)
+    return await db.get_render_templates(profile_id=current_user.profile_id, show_all=show_all)
 
 
 @router.patch(

@@ -1,3 +1,4 @@
+import backoff
 import requests
 
 
@@ -10,10 +11,23 @@ class LastItemInfo:
         self._profile_id = profile_id
         self._open_case_uuid = open_case_uuid
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=3)
     def _get_item_info(self):
         answer = requests.get(self.INVENTORY_URL.format(self._profile_id))
         return answer.json()
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=3)
+    def _get_item_price(self, item_hash_name):
+        answer = requests.get(self.PRICE_URL.format(item_hash_name))
+        data = answer.json()
+        price = float(data['lowest_price'].replace(' pуб.', '').replace(',', '.'))
+        return price
+
+    @staticmethod
+    def _get_float():
+        return 0
+
+    @backoff.on_exception(backoff.expo, Exception, max_tries=3)
     def get_item_info(self):
         raw_data = self._get_item_info()
         asset = raw_data['assets'][0]
@@ -46,16 +60,7 @@ class LastItemInfo:
         item_info.update(
             {
                 'price': self._get_item_price(description['market_hash_name']),
-                'float': '?'
+                'float': self._get_float()
             }
         )
         return item_info
-
-    def _get_item_price(self, item_hash_name):
-        try:
-            answer = requests.get(self.PRICE_URL.format(item_hash_name))
-            data = answer.json()
-            price = float(data['lowest_price'].replace(' pуб.', '').replace(',', '.'))
-            return price
-        except Exception as e:
-            return 0

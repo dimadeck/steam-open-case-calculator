@@ -1,15 +1,31 @@
+import json
+import os.path
+from asyncio import sleep
 from typing import List, Union, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+import simplejson
+from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette import status
+from starlette.responses import HTMLResponse
+from starlette.templating import Jinja2Templates
+from starlette.websockets import WebSocket
 
 from api.middleware.user import get_current_user
+from api.v1.item.crud import get_crud_item, CrudItem
+from api.v1.item.schema import ItemsModel, ItemModel
 from api.v1.open_case.crud import CrudOpenCase, get_crud_open_case
-from api.v1.open_case.schema import OpenCaseBaseModel, OpenCaseModel
+from api.v1.open_case.schema import OpenCaseBaseModel, OpenCaseModel, OpenCaseUpdateModel, TaskModel
+from api.v1.render_template.crud import CrudRenderTemplate, get_crud_render_template
 from api.v1.user.schema import UserModel
+from db.models import model_to_dict
+from log import get_log_channel
+from workers.tasks import launch_observer
+
+templates = Jinja2Templates(directory=os.path.join('api', 'v1', 'templates'))
 
 router = APIRouter()
+_log = get_log_channel('Router')
 
 
 @router.post(
@@ -54,7 +70,7 @@ async def get_open_case(
 )
 async def update_open_case(
         open_case_uuid: Union[str, UUID],
-        data: OpenCaseBaseModel,
+        data: OpenCaseUpdateModel,
         db: CrudOpenCase = Depends(get_crud_open_case),
         current_user: UserModel = Depends(get_current_user)
 ):
@@ -85,7 +101,7 @@ async def delete_open_case(
 
 @router.post(
     '/open_case/{open_case_uuid}/action',
-    response_model=OpenCaseModel,
+    response_model=Union[OpenCaseModel, TaskModel],
     summary='Запустить/Остановить открытие кейса'
 )
 async def launch_open_case(
@@ -96,8 +112,80 @@ async def launch_open_case(
 ):
     if is_active:
         await db.stop_all_open_cases(current_user.profile_id)
+        open_case = await db.get_open_case_by_uuid(profile_id=current_user.profile_id, open_case_uuid=open_case_uuid)
+        await db.update_open_case(
+            open_case_uuid=open_case_uuid,
+            profile_id=current_user.profile_id,
+            is_active=is_active
+        )
+        task = launch_observer.delay(profile_id=open_case.profile_id, open_case_uuid=open_case.uuid)
+        return {"task_id": task.id}
     return await db.update_open_case(
         open_case_uuid=open_case_uuid,
         profile_id=current_user.profile_id,
         is_active=is_active
     )
+
+
+@router.get(
+    '/open_case/{open_case_uuid}/render',
+    summary='Страница рендера для открытия кейса'
+)
+async def render_open_case(
+        request: Request,
+        open_case_uuid: Union[str, UUID],
+        db: CrudOpenCase = Depends(get_crud_open_case),
+        render_template_crud: CrudRenderTemplate = Depends(get_crud_render_template),
+):
+    open_case = await db.get_open_case_by_uuid_without_user(open_case_uuid=open_case_uuid)
+    render_template = await render_template_crud.get_render_template_by_uuid(
+        profile_id=open_case.profile_id,
+        render_template_uuid=open_case.render_template_uuid
+    )
+    data = {
+        "request": request,
+        "open_case": open_case,
+        "render": render_template
+    }
+    return templates.TemplateResponse("render_page.html", data)
+
+
+@router.websocket("/open_case/{open_case_uuid}/get_updates")
+async def get_updates(
+        websocket: WebSocket,
+        open_case_uuid: Union[str, UUID],
+        db: CrudItem = Depends(get_crud_item),
+):
+    await websocket.accept()
+    while True:
+        await sleep(5)
+        if items := await db.get_updates_from_case(open_case_uuid=open_case_uuid):
+            items_json = [json.loads(ItemModel(**model_to_dict(item)).json()) for item in items]
+            _log.info("super items: %s", items_json)
+            await websocket.send_text(json.dumps(items_json))
+
+
+html = """
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chat</title>
+    </head>
+    <body>
+        <script>
+            var ws = new WebSocket("ws://127.0.0.1:8004/api/v1/open_case/7fda08d0-dea1-45ac-9d26-57ca5fba31f3/get_updates");
+            ws.onmessage = function(event) {
+                let elements = JSON.parse(event.data);
+                elements.forEach(function (item) {
+                console.log(item);
+                });
+            };
+        </script>
+    </body>
+</html>
+"""
+
+
+@router.get("/open_case/test")
+async def get():
+    return HTMLResponse(html)

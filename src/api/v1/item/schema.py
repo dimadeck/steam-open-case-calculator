@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, Union
+from typing import Optional, Union, List
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -30,3 +30,7 @@ class ItemModel(ItemModelBase):
     profile_id: int
     is_shown: bool
     created_at: datetime.datetime
+
+
+class ItemsModel(BaseModelORM):
+    items: List[ItemModel]

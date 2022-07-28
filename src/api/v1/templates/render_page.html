@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Render - {{open_case.name}}</title>
+  <style>
+    {{render.style_text | safe }}
+  </style>
+</head>
+<body>
+{{render.html_text | safe }}
+<script>
+  {{render.script_text | safe }}
+</script>
+</body>
+</html>
+

@@ -30,6 +30,18 @@ class CrudOpenCase:
         return open_case
 
     @orm_error_handler
+    async def get_open_case_by_uuid_without_user(
+            self,
+            open_case_uuid: Union[UUID, str],
+            with_items: bool = True
+    ) -> OpenCase:
+        sql = select(OpenCase).filter_by(uuid=open_case_uuid)
+        if with_items:
+            sql = sql.options(selectinload(OpenCase.items))
+        query = await self.db_session.execute(sql)
+        return query.scalar_one()
+
+    @orm_error_handler
     async def get_open_case_by_uuid(
             self,
             profile_id: int,

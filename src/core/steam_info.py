@@ -1,5 +1,6 @@
 import re
 
+import backoff
 import requests
 
 
@@ -12,6 +13,7 @@ class SteamInfo:
     def __init__(self, profile_id):
         self._profile_id = profile_id
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=3)
     def get_info(self):
         answer = requests.get(self.URL.format(self._profile_id))
         html = answer.text

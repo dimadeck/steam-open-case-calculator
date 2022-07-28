@@ -2,6 +2,7 @@ from typing import Optional, List, Union
 from uuid import UUID
 
 from sqlalchemy import select, update
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from api.middleware.orm_error import orm_error_handler
@@ -83,6 +84,15 @@ class CrudItem:
             execution_options(synchronize_session="fetch")
         await self.db_session.execute(sql)
         return await self.get_item_by_id(asset_id=asset_id, profile_id=profile_id)
+
+    @orm_error_handler
+    async def get_updates_from_case(self, open_case_uuid: Union[str, UUID]) -> Optional[List[Item]]:
+        try:
+            sql = select(Item).filter_by(open_case_uuid=open_case_uuid, is_shown=False)
+            query = await self.db_session.execute(sql)
+            return query.scalars().all()
+        except NoResultFound as e:
+            return None
 
 
 async def get_crud_item():

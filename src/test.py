@@ -1,5 +1,5 @@
 from core.last_item_info import LastItemInfo
-from core.observer import Observer
+from core.observer import Observer, OpenCaseAPI
 
 PROFILE_ID = 76561199125691575
 OPEN_CASE_UUID = '7fda08d0-dea1-45ac-9d26-57ca5fba31f3'

@@ -3,18 +3,22 @@ from pydantic import Field, BaseSettings
 
 class ApplicationSettings(BaseSettings):
     BACKEND_URL: str = Field(env='BACKEND_URL')
+    BACKEND_TOKEN: str = Field(env='BACKEND_TOKEN')
     DB_HOST: str = Field(env='DB_HOST')
     DB_PORT: int = Field(env='DB_PORT')
     DB_BASENAME: str = Field(env='DB_BASENAME')
     DB_USERNAME: str = Field(env='DB_USERNAME')
     DB_PASSWORD: str = Field(env='DB_PASSWORD')
     DB_PROTOCOL: str = Field(env='DB_PROTOCOL')
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(env='JWT_ACCESS_TOKEN_EXPIRE_MINUTES')
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(env='JWT_ACCESS_TOKEN_EXPIRE_MINUTES', default=60*24*30)
     JWT_SECRET: str = Field(env='JWT_SECRET')
-    JWT_ALGORITHM: str = Field(env='JWT_ALGORITHM')
-    LOG_LEVEL: str = Field(env='LOG_LEVEL')
-    LOG_FILENAME: str = Field(env='LOG_FILENAME')
-    LOG_CONSOLE: str = Field(env='LOG_CONSOLE')
+    JWT_ALGORITHM: str = Field(env='JWT_ALGORITHM', default='HS256')
+    LOG_LEVEL: str = Field(env='LOG_LEVEL', default='info')
+    LOG_FILENAME: str = Field(env='LOG_FILENAME', default='SOCC.log')
+    LOG_CONSOLE: str = Field(env='LOG_CONSOLE', default=False)
+    OBSERVER_WAITING_TIME: int = Field(env='OBSERVER_WAITING_TIME', default=5)
+    CELERY_BROKER_URL: str = Field(env='CELERY_BROKER_URL')
+    CELERY_RESULT_BACKEND: str = Field(env='CELERY_RESULT_BACKEND')
 
     @property
     def dsn(self):

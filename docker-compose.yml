@@ -25,3 +25,28 @@ services:
       POSTGRES_USER: "${DB_USERNAME}"
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
       POSTGRES_DB: "${DB_BASENAME}"
+
+  worker:
+    build: ./
+    volumes:
+      - ./src:/usr/src/app
+    command: celery -A workers worker -l INFO -c 4
+    env_file:
+      - .env
+    environment:
+      CELERY_BROKER_URL: "${CELERY_BROKER_URL}"
+      CELERY_RESULT_BACKEND: "${CELERY_RESULT_BACKEND}"
+    depends_on:
+      - web
+      - redis
+
+  redis:
+    image: redis:6-alpine
+
+  flower:
+    image: mher/flower
+    environment:
+      CELERY_BROKER_URL: "${CELERY_BROKER_URL}"
+      FLOWER_PORT: "8888"
+    ports:
+      - "8888:8888"

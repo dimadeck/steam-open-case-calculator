@@ -1,11 +1,15 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Column, Boolean, DateTime, Numeric, String, BigInteger, Text, ForeignKey
+from sqlalchemy import Column, Boolean, DateTime, Numeric, String, BigInteger, Text, ForeignKey, inspect
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from db.connections import Base
+
+
+def model_to_dict(obj):
+    return {c.key: getattr(obj, c.key) for c in inspect(obj).mapper.column_attrs}
 
 
 class User(Base):
@@ -27,6 +31,7 @@ class OpenCase(Base):
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
     is_active = Column(Boolean, default=False)
     items = relationship("Item", uselist=True, lazy='noload')
+    render_template_uuid = Column(UUID(as_uuid=True), ForeignKey("render_templates.uuid"), nullable=True, default=None)
 
 
 class Item(Base):

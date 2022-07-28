@@ -1,7 +1,7 @@
 from typing import Union, List, Optional
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, or_
 from sqlalchemy.orm import Session, selectinload
 
 from api.middleware.orm_error import orm_error_handler
@@ -46,8 +46,13 @@ class CrudRenderTemplate:
         return query.scalar_one()
 
     @orm_error_handler
-    async def get_render_templates(self, profile_id: int) -> List[RenderTemplate]:
-        sql = select(RenderTemplate).filter_by(profile_id=profile_id)
+    async def get_render_templates(self, profile_id: int, show_all: bool) -> List[RenderTemplate]:
+        if show_all:
+            sql = select(RenderTemplate).filter(or_(
+                RenderTemplate.profile_id == profile_id, RenderTemplate.is_private == False
+            ))
+        else:
+            sql = select(RenderTemplate).filter_by(profile_id=profile_id)
         query = await self.db_session.execute(sql)
         return query.scalars().all()
 

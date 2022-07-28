@@ -15,6 +15,13 @@ class BaseModelORM(BaseModel):
 class OpenCaseBaseModel(BaseModelORM):
     name: str
     description: Optional[str] = None
+    render_template_uuid: Optional[Union[str, UUID]] = None
+
+
+class OpenCaseUpdateModel(BaseModelORM):
+    name: Optional[str]
+    description: Optional[str]
+    render_template_uuid: Optional[Union[str, UUID]]
 
 
 class OpenCaseModel(OpenCaseBaseModel):
@@ -39,5 +46,5 @@ class OpenCaseModel(OpenCaseBaseModel):
         return len(values.get('items', []))
 
 
-# class OpenCaseModelWithoutItems(OpenCaseModel):
-#     items: List[ItemModel] = Field(exclude=True)
+class TaskModel(BaseModelORM):
+    task_id: str
