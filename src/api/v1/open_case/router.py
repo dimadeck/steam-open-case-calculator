@@ -1,7 +1,8 @@
 from typing import List, Union, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from starlette import status
 
 from api.middleware.user import get_current_user
 from api.v1.open_case.crud import CrudOpenCase, get_crud_open_case
@@ -57,10 +58,12 @@ async def update_open_case(
         db: CrudOpenCase = Depends(get_crud_open_case),
         current_user: UserModel = Depends(get_current_user)
 ):
+    data_without_none = data.dict(exclude_none=True)
+    if not data_without_none:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
     return await db.update_open_case(
         open_case_uuid=open_case_uuid,
-        name=data.name,
-        description=data.description
+        **data_without_none
     )
 
 

@@ -1,11 +1,12 @@
 from typing import List, Union, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from starlette import status
 
 from api.middleware.user import get_current_user
 from api.v1.render_template.crud import CrudRenderTemplate, get_crud_render_template
-from api.v1.render_template.schema import RenderTemplateBaseModel, RenderTemplateModel
+from api.v1.render_template.schema import RenderTemplateBaseModel, RenderTemplateModel, RenderTemplateUpdateModel
 from api.v1.user.schema import UserModel
 
 router = APIRouter()
@@ -55,17 +56,17 @@ async def get_render_template(
 )
 async def update_render_template(
         render_template_uuid: Union[str, UUID],
-        data: RenderTemplateBaseModel,
+        data: RenderTemplateUpdateModel,
         db: CrudRenderTemplate = Depends(get_crud_render_template),
         current_user: UserModel = Depends(get_current_user)
 ):
+    data_without_none = data.dict(exclude_none=True)
+    if not data_without_none:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
     return await db.update_render_template(
+        profile_id=current_user.profile_id,
         render_template_uuid=render_template_uuid,
-        name=data.name,
-        html_text=data.html_text,
-        script_text=data.script_text,
-        style_text=data.style_text,
-        is_private=data.is_private
+        **data_without_none
     )
 
 

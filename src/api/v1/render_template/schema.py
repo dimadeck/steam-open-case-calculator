@@ -1,10 +1,7 @@
-import datetime
-from typing import Optional, Union, List
+from typing import Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel, validator, Field
-
-from api.v1.item.schema import ItemModel
+from pydantic import BaseModel
 
 
 class BaseModelORM(BaseModel):
@@ -20,6 +17,14 @@ class RenderTemplateBaseModel(BaseModelORM):
     is_private: bool
 
 
+class RenderTemplateUpdateModel(BaseModelORM):
+    name: Optional[str]
+    html_text: Optional[str]
+    script_text: Optional[str]
+    style_text: Optional[str]
+    is_private: Optional[bool]
+
+
 class RenderTemplateModel(RenderTemplateBaseModel):
-    uuid: str
+    uuid: Union[str, UUID]
     profile_id: str

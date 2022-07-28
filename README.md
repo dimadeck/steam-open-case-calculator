@@ -9,7 +9,7 @@
     $ git clone https://github.com/dimadeck/steam-open-case-calculator
     $ cd steam-open-case-calculator
 
-    Создать файл .env с содержимым:
+    Создать файл .env с содержимым (при необходимости, выставить свои значения):
 
         DB_HOST=db
         DB_PORT=5432
@@ -21,8 +21,12 @@
         JWT_ACCESS_TOKEN_EXPIRE_MINUTES=43200
         JWT_SECRET=31f04487001ce91ec7c2fa1615fcd744614a3c4fda18f1ad
         JWT_ALGORITHM=HS256
+
+        LOG_CONSOLE=True
+        LOG_LEVEL=info
+        LOG_FILENAME=SOCC.log
     
-    Для настройки(заполнения) базы данных изменить переменную окружения:
+    Для настройки базы данных(применения миграций) изменить переменную окружения:
         DB_HOST=127.0.0.1
     
     $ python -m venv env
