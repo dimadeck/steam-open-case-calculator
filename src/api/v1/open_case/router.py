@@ -15,6 +15,7 @@ from api.v1.open_case.crud import CrudOpenCase, get_crud_open_case
 from api.v1.open_case.schema import OpenCaseBaseModel, OpenCaseModel, OpenCaseUpdateModel, TaskModel
 from api.v1.render_template.crud import CrudRenderTemplate, get_crud_render_template
 from api.v1.user.schema import UserModel
+from config import settings_app
 from log import get_log_channel
 from workers.redis_pub_sub import subscriber
 from workers.tasks import launch_observer
@@ -75,6 +76,7 @@ async def update_open_case(
     if not data_without_none:
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
     return await db.update_open_case(
+        profile_id=current_user.profile_id,
         open_case_uuid=open_case_uuid,
         **data_without_none
     )
@@ -135,14 +137,18 @@ async def render_open_case(
         render_template_crud: CrudRenderTemplate = Depends(get_crud_render_template),
 ):
     open_case = await db.get_open_case_by_uuid_without_user(open_case_uuid=open_case_uuid)
-    render_template = await render_template_crud.get_render_template_by_uuid(
-        profile_id=open_case.profile_id,
-        render_template_uuid=open_case.render_template_uuid
-    )
+    # render_template = await render_template_crud.get_render_template_by_uuid(
+    #     profile_id=open_case.profile_id,
+    #     render_template_uuid=open_case.render_template_uuid
+    # )
     data = {
         "request": request,
         "open_case": open_case,
-        "render": render_template
+        "data": {
+            "backend_url": '127.0.0.1:8004/api/v1',
+            "token": settings_app.BACKEND_TOKEN,
+            "schema": "http://"
+        }
     }
     return templates.TemplateResponse("render_page.html", data)
 
@@ -160,10 +166,13 @@ async def get_updates(
         try:
             message = subscriber.get_message()
             if message:
+                _log.warning("MESSAGE: %s", message)
                 item = json.loads(message['data'].decode('utf-8'))
                 if item['open_case_uuid'] != open_case_uuid:
                     continue
                 _log.warning(f'New Item: {item}')
                 await websocket.send_text(json.dumps(item))
+                _log.warning("MESSAGE: %s", message)
+
         except Exception as e:
-            _log.error(e)
+            _log.error("WS ERROR: %s", str(e))

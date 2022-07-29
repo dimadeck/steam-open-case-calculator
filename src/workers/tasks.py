@@ -10,8 +10,7 @@ app.conf.result_backend = settings_app.CELERY_RESULT_BACKEND
 
 @app.task(name="launch_observer")
 def launch_observer(profile_id, open_case_uuid):
-    # lii = LastItemInfo(profile_id, open_case_uuid)
-    # last_asset_id = lii.get_item_info()['asset_id']
-    last_asset_id = 0
+    lii = LastItemInfo(profile_id, open_case_uuid)
+    last_asset_id = lii.get_item_info()['asset_id']
     Observer(profile_id=profile_id, last_asset_id=last_asset_id, open_case_uuid=open_case_uuid).observe()
     return True

@@ -21,7 +21,7 @@ class LastItemInfo:
         answer = requests.get(self.PRICE_URL.format(item_hash_name))
         data = answer.json()
         price = float(data['lowest_price'].replace(' pуб.', '').replace(',', '.'))
-        return price
+        return round(price, 2)
 
     @staticmethod
     def _get_float():

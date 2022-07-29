@@ -3,15 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <title>Render - {{open_case.name}}</title>
-  <style>
-    {{render.style_text | safe }}
-  </style>
+    <style>
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 4rem 5vw;
+            padding: 0;
+            list-style-type: none;
+        }
+
+        .card {
+            text-align: center;
+            vertical-align: middle;
+            font-size: 15px;
+            color: #ffffff !important;
+            text-shadow: 1px 0 1px #000,
+            0 1px 1px #000,
+            -1px 0 1px #000,
+            0 -1px 1px #000;
+        }
+
+        .card__image {
+            width: 100%;
+            height: auto;
+        }
+
+        .card__overlay {
+            border-radius: calc(40 * 1px);
+        }
+
+        .card__status {
+            font-size: 20px;
+            color: #E2A126 !important;
+            text-shadow: 1px 0 1px #000,
+            0 1px 1px #000,
+            -1px 0 1px #000,
+            0 -1px 1px #000;
+        }
+
+        .max-size {
+            max-height: 100px;
+            max-width: 100px;
+        }
+    </style>
 </head>
 <body>
-{{render.html_text | safe }}
+<div class="max-size">
+    <ul class="cards">
+        <li class="card">
+            <div class="card__overlay" id="card">
+                <img id="image_url" src="" class="card__image" alt=""/>
+                <div class="card__header-text">
+                    <h3 id="item_name" class="card__status">Ожидаем дроп</h3>
+                    <p><span id="item_price" class="card__status">0</span> рублей</p>
+                    <p>Общее количество: <span id="total_count" class="card__status">0</span></p>
+                    <p>Общая стоимость: <span id="total_amount" class="card__status">0</span> рублей</p>
+                </div>
+                <br>
+                <br>
+            </div>
+        </li>
+    </ul>
+</div>
+
 <script>
-  {{render.script_text | safe }}
+    let open_case_uuid = "{{open_case.uuid}}";
+    let token = "{{data.token}}";
+    let schema = "{{data.schema}}";
+    let backend_url = "{{data.backend_url}}";
+
+    async function makeRequest(method, path) {
+        let headers = {"Content-Type": "application/json"};
+        headers["Authorization"] = 'Bearer ' + token
+        let response = await fetch(schema + backend_url + path, {
+            method: method,
+            headers
+        });
+
+        if (response.ok) {
+            return await response.json();
+        }
+    }
+
+    async function getOpenCase() {
+        return makeRequest('GET', '/open_case?with_items=True&open_case_uuid=' + open_case_uuid)
+    }
+
+    async function showItem(asset_id) {
+        return makeRequest('POST', '/item/' + asset_id + '/show')
+    }
+
+    function render(open_case, item) {
+        document.getElementById("total_count").innerHTML = open_case.total_count;
+        document.getElementById("total_amount").innerHTML = open_case.total_amount;
+        document.getElementById("item_name").innerHTML = item.name;
+        document.getElementById("item_price").innerHTML = item.price;
+        document.getElementById("image_url").src = item.image_url;
+        document.getElementById("card").style.backgroundColor = "#" + item.rarity_color;
+        document.getElementById("card").style.boxShadow = '5px 15px 60px 22px #' + item.rarity_color;
+
+    }
+
+    function init() {
+        document.getElementById("card").style.backgroundColor = "#857C7CFF";
+        document.getElementById("card").style.boxShadow = '5px 15px 60px 22px #857C7CFF';
+    }
+
+    init()
+    let ws = new WebSocket("ws://" + backend_url + "/open_case/" + open_case_uuid + "/get_updates");
+    ws.onmessage = async function (event) {
+        let item = JSON.parse(event.data);
+        console.log(item);
+        let open_case = await getOpenCase();
+        console.log(open_case);
+        render(open_case, item);
+        await showItem(item.asset_id);
+    };
 </script>
 </body>
 </html>
-
