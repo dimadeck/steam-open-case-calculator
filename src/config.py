@@ -19,6 +19,8 @@ class ApplicationSettings(BaseSettings):
     OBSERVER_WAITING_TIME: int = Field(env='OBSERVER_WAITING_TIME', default=5)
     CELERY_BROKER_URL: str = Field(env='CELERY_BROKER_URL')
     CELERY_RESULT_BACKEND: str = Field(env='CELERY_RESULT_BACKEND')
+    REDIS_NEW_ITEM_CHANNEL: str = Field(env='REDIS_NEW_ITEM_CHANNEL')
+    REDIS_PUB_SUB_URL: str = Field(env='REDIS_PUB_SUB_URL')
 
     @property
     def dsn(self):

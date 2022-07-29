@@ -4,22 +4,19 @@ from asyncio import sleep
 from typing import List, Union, Optional
 from uuid import UUID
 
-import simplejson
 from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette import status
-from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 from starlette.websockets import WebSocket
 
 from api.middleware.user import get_current_user
 from api.v1.item.crud import get_crud_item, CrudItem
-from api.v1.item.schema import ItemsModel, ItemModel
 from api.v1.open_case.crud import CrudOpenCase, get_crud_open_case
 from api.v1.open_case.schema import OpenCaseBaseModel, OpenCaseModel, OpenCaseUpdateModel, TaskModel
 from api.v1.render_template.crud import CrudRenderTemplate, get_crud_render_template
 from api.v1.user.schema import UserModel
-from db.models import model_to_dict
 from log import get_log_channel
+from workers.redis_pub_sub import subscriber
 from workers.tasks import launch_observer
 
 templates = Jinja2Templates(directory=os.path.join('api', 'v1', 'templates'))
@@ -157,35 +154,16 @@ async def get_updates(
         db: CrudItem = Depends(get_crud_item),
 ):
     await websocket.accept()
+
     while True:
-        await sleep(5)
-        if items := await db.get_updates_from_case(open_case_uuid=open_case_uuid):
-            items_json = [json.loads(ItemModel(**model_to_dict(item)).json()) for item in items]
-            _log.info("super items: %s", items_json)
-            await websocket.send_text(json.dumps(items_json))
-
-
-html = """
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Chat</title>
-    </head>
-    <body>
-        <script>
-            var ws = new WebSocket("ws://127.0.0.1:8004/api/v1/open_case/7fda08d0-dea1-45ac-9d26-57ca5fba31f3/get_updates");
-            ws.onmessage = function(event) {
-                let elements = JSON.parse(event.data);
-                elements.forEach(function (item) {
-                console.log(item);
-                });
-            };
-        </script>
-    </body>
-</html>
-"""
-
-
-@router.get("/open_case/test")
-async def get():
-    return HTMLResponse(html)
+        await sleep(1)
+        try:
+            message = subscriber.get_message()
+            if message:
+                item = json.loads(message['data'].decode('utf-8'))
+                if item['open_case_uuid'] != open_case_uuid:
+                    continue
+                _log.warning(f'New Item: {item}')
+                await websocket.send_text(json.dumps(item))
+        except Exception as e:
+            _log.error(e)

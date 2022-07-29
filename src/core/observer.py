@@ -1,6 +1,7 @@
 from time import sleep
 
 from log import get_log_channel
+from workers.redis_pub_sub import publish
 from .helpers.api import OpenCaseAPI
 from .last_item_info import LastItemInfo
 from config import settings_app
@@ -39,5 +40,7 @@ class Observer:
     def _add_new_item(item_info):
         _log.info(f'Adding new item: {item_info}')
         item = OpenCaseAPI().add_item(item_info)
-        _log.info(f'Added: {item}')
+        _log.info(f'Sending to redis: {item}')
+        publish(item)
+        _log.info(f'Sent')
         return item
